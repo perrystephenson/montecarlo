@@ -29,7 +29,7 @@ Let's start with the third point - the estimation of each task. Based on these t
 
 A probability distribution represents uncertainty in a value. A triangular distribution looks like this:
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(triangle)
 n <- 10000
 a <- 1
