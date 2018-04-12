@@ -1,0 +1,3 @@
+"0","uniform_samples <- runif(10000, min = 0, max = 1)"
+"0","triangle_samples <- inverse_cdf(uniform_samples, a = 1, b = 5, c = 2)"
+"0","hist(triangle_samples, breaks=50, col = ""red"", probability=TRUE)"

@@ -1,0 +1,24 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1523533593323.000,
+    "dirty" : true,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "60CD7582",
+    "lastKnownWriteTime" : 1523541719,
+    "last_content_update" : 1523541738687,
+    "path" : "~/code/montecarlo/monte_carlo_explainer.Rmd",
+    "project_path" : "monte_carlo_explainer.Rmd",
+    "properties" : {
+        "chunk_output_type" : "inline",
+        "cursorPosition" : "193,164",
+        "scrollLine" : "171",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

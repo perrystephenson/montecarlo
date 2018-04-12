@@ -1,0 +1,7 @@
+"0","library(triangle)"
+"0","n <- 10000"
+"0","a <- 1"
+"0","b <- 5"
+"0","theta <- 2"
+"0","X <- rtriangle(n, a, b, theta)"
+"0","hist(X, breaks=50, col = ""red"", probability=TRUE)"

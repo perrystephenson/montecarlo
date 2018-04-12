@@ -1,0 +1,1 @@
+"0","hist(runif(100000), breaks=50, col = ""red"", probability=TRUE)"
