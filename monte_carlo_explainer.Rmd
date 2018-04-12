@@ -1,6 +1,6 @@
 ---
 title: "Monte Carlo"
-output: github_document
+output: html_document
 ---
 
 After battling through a Monte Carlo example in a poorly designed Excel workbook at uni, I decided to put it all together in R to make sure I know how it really works. This won't cover too much of the **why** for Monte Carlo (the lecture notes cover that pretty well), rather it will cover the mechanics of how you make it work. This is demonstrably possible to do in Excel, but it's much easier to understand programmatically.
@@ -191,4 +191,4 @@ Finally! Now we can get on with the Monte Carlo simulation.
 
 ### The rest of Monte Carlo
 
-With a way to generate data from a triangle distribution, it's pretty straight-forward to build a simulation and estimate some values.
+With a way to generate data from a triangle distribution, it's pretty straight-forward to build a simulation and estimate some values. I will do that another night.
