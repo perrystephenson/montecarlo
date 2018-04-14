@@ -74,7 +74,7 @@ triangle_pdf <- function(x, a, b, c) {
 Let's plot some values for our function to make sure it's correct:
 
 ```{r}
-plot(triangle_pdf(x = seq(0,6,0.1), a = 1, b = 5, c = 2), type='l')
+plot(x = seq(0,6,0.1), y = triangle_pdf(x = seq(0,6,0.1), a = 1, b = 5, c = 2), type='l')
 ```
 
 Good.
@@ -84,7 +84,7 @@ Now we need to work out how to sample from this distribution so that we can use 
 ```{r}
 X <- seq(from = 0, to = 6, by = 0.01)
 prob <- triangle_pdf(X, a = 1, b = 5, c = 2) * 0.01
-plot(cumsum(prob), type='l')
+plot(x = X, y = cumsum(prob), type='l')
 ```
 
 Hooray! It looks just like the one on Wikipedia! We can actually calculate this directly using the formula for a cumulative density function:
@@ -114,7 +114,8 @@ triangle_cdf <- function(x, a, b, c) {
 Just like with the PDF, let's plot some values for our function to make sure it's correct:
 
 ```{r}
-plot(triangle_cdf(x = seq(0,6,0.1), a = 1, b = 5, c = 2), type='l')
+X = seq(0,6,0.1)
+plot(x = X, y = triangle_cdf(X, a = 1, b = 5, c = 2), type='l')
 ```
 
 Killing it!

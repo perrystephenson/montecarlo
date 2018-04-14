@@ -1,1 +1,0 @@
-"0","plot(triangle_cdf(x = seq(0,6,0.1), a = 1, b = 5, c = 2), type='l')"
