@@ -79,7 +79,11 @@ plot(x = seq(0,6,0.1), y = triangle_pdf(x = seq(0,6,0.1), a = 1, b = 5, c = 2), 
 
 Good.
 
-Now we need to work out how to sample from this distribution so that we can use these samples in a Monte Carlo. This isn't exactly straight forward - R gives us some ways to generate random numbers but none of these random number generators can draw from our new triangular distribution. In order to do this effectively, we need to first calculate the "cumulative density function" (CDF) for the distribution above. This function is the integral (area under the curve) for the figure above, and it estimates the probability that a point in distribution will be less than or equal to the x. We can calculate this integral numerically to demonstrate how it works.
+Now we need to work out how to sample from this distribution so that we can use these samples in a Monte Carlo. This isn't exactly straight forward - R gives us some ways to generate random numbers but none of these random number generators can draw from our new triangular distribution. In order to do this effectively, we need to first calculate the "cumulative density function" (CDF) for the distribution above. This function is the integral (area under the curve) for the figure above, and it estimates the probability that a point in distribution will be less than or equal to the x. 
+
+Before we plot, it's probably worth thinking about this intuitively. The first section of the triangle is a positive-gradient straight line, so the integral of this section will be parabolic with an increasing gradient. The second section of the triangle is a negative-gradient straight line, so the integral of that section will also be parabolic but with a decreasing gradient. Together, these should look like a smooth S curve.
+
+We can calculate this integral numerically to check that the intuition is correct.
 
 ```{r}
 X <- seq(from = 0, to = 6, by = 0.01)
@@ -87,7 +91,7 @@ prob <- triangle_pdf(X, a = 1, b = 5, c = 2) * 0.01
 plot(x = X, y = cumsum(prob), type='l')
 ```
 
-Hooray! It looks just like the one on Wikipedia! We can actually calculate this directly using the formula for a cumulative density function:
+Hooray! It matches muy intuition and looks just like the one on Wikipedia! We can actually calculate this directly using the formula for a cumulative density function, which is of course derived by integrating the PDF.
 
 $$
 \begin{cases}
@@ -111,7 +115,7 @@ triangle_cdf <- function(x, a, b, c) {
 }
 ```
 
-Just like with the PDF, let's plot some values for our function to make sure it's correct:
+Just like with the PDF, let's plot some values for our function to make sure it's correct and looks like the discrete approximation generated above:
 
 ```{r}
 X = seq(0,6,0.1)
@@ -188,8 +192,107 @@ triangle_sample <- function(n, a, b, c) {
 hist(triangle_sample(100000, a = 1, b = 5, c = 2), breaks=50, col = "red", probability=TRUE)
 ```
 
+And if you're unfortunate enough to have to do this in Excel, you can make this a VBA function (which you can use in a spreadsheet) with the following code:
+
+```{VBA}
+Public Function triangle_rand(min As Double, max As Double, mostlikely As Double)
+
+Dim U As Double
+Dim Fc As Double
+U = Rnd
+Fc = (mostlikely - min) / (max - min)
+
+If U > 0 And U < Fc Then
+   triangle_rand = min + Sqr(U * (max - min) * (mostlikely - min))
+ElseIf U >= Fc And U < 1 Then
+  triangle_rand = max - Sqr((1 - U) * (max - min) * (max - mostlikely))
+End If
+
+End Function
+```
+
 Finally! Now we can get on with the Monte Carlo simulation.
 
 ### The rest of Monte Carlo
 
-With a way to generate data from a triangle distribution, it's pretty straight-forward to build a simulation and estimate some values. I will do that another night.
+With a way to generate data from a triangle distribution, it's pretty straight-forward to build a simulation and estimate some values. Let's set out the problem again here:
+
+1. There are 4 tasks. Tasks 1 and 2 can be completed at the same time, but task 3 depends on the outputs of tasks 1 and 2, and task 4 relies on the output of task 3.
+1. The cost per day for each task is known.
+1. The minimum, maximum, and most likely time taken to complete each task is able to be estimated based on business knowledge.
+
+And here are the assumptions that we've been provided with:
+
+| Task | Minimum Time | Maximum Time | Expected Time | Cost Per Day |
+| ---- | ------------ | ------------ | ------------- | ------------ |
+| 1    | 10           | 40           | 20            | $75          |
+| 2    | 5            | 30           | 10            | $50          |
+| 3    | 14           | 60           | 28            | $250         |
+| 4    | 40           | 150          | 75            | $150         |
+
+We also know that there is an overhead cost of $450 per day for project management.
+
+We can now use this information to start calculating the duration and cost of the project by simulating each of these tasks independently.
+
+```{r}
+SIMULATIONS <- 1000000
+
+task1_duration <- triangle_sample(n = SIMULATIONS, a = 10, b = 40,  c = 20)
+task2_duration <- triangle_sample(n = SIMULATIONS, a = 5,  b = 30,  c = 10)
+task3_duration <- triangle_sample(n = SIMULATIONS, a = 14, b = 60,  c = 28)
+task4_duration <- triangle_sample(n = SIMULATIONS, a = 40, b = 150, c = 75)
+
+par(mfrow = c(2,2))
+hist(task1_duration, breaks=50, col = "red", probability=TRUE)
+hist(task2_duration, breaks=50, col = "red", probability=TRUE)
+hist(task3_duration, breaks=50, col = "red", probability=TRUE)
+hist(task4_duration, breaks=50, col = "red", probability=TRUE)
+```
+
+We also need to calculate the overall project duration, which is governed by the following:
+
+> Tasks 1 and 2 can be completed at the same time, but task 3 depends on the outputs of tasks 1 and 2, and task 4 relies on the output of task 3.
+
+```{r}
+task_1_2_duration <- pmax(task1_duration, task2_duration)
+hist(task_1_2_duration, breaks=50, col = "red", probability=TRUE)
+```
+
+This is a good point to pause and consider the value of numerical simulations like Monte Carlo. Up until this moment we've been able to describe everything analytically, and the sampling wasn't really bringing anything new to the table. But when we consider the maximum time for task 1 and task 2, you can see that we've departed from a triange distribution and we're looking at some sort of hybrid distribution (I'm using 1,000,000 simulations to try and smooth it out as much as possible). I suspect that this distribution would be fairly difficult to describe analytically, but by using a numerical simulation we can generate and work with this hybrid distribution no matter the shape. This becomes even more interesting when we start combining more distributions together to get the duration of the whole project:
+
+```{r}
+project_duration <- task_1_2_duration + task3_duration + task4_duration
+hist(project_duration, breaks=50, col = "red", probability=TRUE)
+```
+
+Now it looks like we're working with something that looks a bit like a skewed Gaussian distribution, and I was able to determine that without a single line of maths - brute force calculation did it for me. I don't need a mathematical description of the distribution, because I've got 1,000,000 simulated points from the distribution that I can use instead. If we aren't interested in the whole distribution, we can of course calculate some summary statistics to use for estimation:
+
+```{r}
+summary(project_duration)
+```
+
+With the task durations and project durations, we can now calculate the overall project cost:
+
+```{r}
+project_cost <- task1_duration * 75 +
+                task2_duration * 50 +
+                task3_duration * 250 +
+                task4_duration * 150 +
+                project_duration * 450
+hist(project_cost, breaks=50, col = "red", probability=TRUE)
+summary(project_cost)
+```
+
+By using a simulation, we can estimate the distribution of the project duration and project cost to a high degree of confidence, without having to determine the analytical solutions when we were performing arithmetic with the estimated probability density functions.
+
+## Caveats
+
+Whilst this all looks really cool mathematically, the use of simulations like Monte Carlo can give false confidence in the outcome. At their best, Monte Carlo simulations are a way to perform **arithmetic calculations that preserve uncertainty**. Some key things to keep in mind:
+
+* Monte Carlo simulations are data-free; this is not a "data driven" technique by any stretch of the imagination
+* There is no mechanism to update your beliefs using observed data
+* The model is entirely based on your assumptions about the range of possible value and their relative probabilities. If your assumptions are invalid, then your results are invalid
+* The use of triangle distributions is problematic, because they do not make any allowance for "black swan" events. The use of standard distributions (Gaussian, Poisson, etc) helps to resolve this problem due to their infinite tails.
+* Triangle distributions are used because they are easier to specify using business knowledge - that doesn't mean they are good!
+* Triangle distributions have the (perhaps unexpected) property that they will never generate outcomes at the minumum or maximum values. This means that whilst the "best case" and "worst case" estimates are probably reasonably likely in business contexts (like the project above), they will never be observed using a Monte Carlo method using triangle distributions because the probability of these values is set to zero by definition. The same goes for projects coming in under budget or over budget - by definition there is no chance for these outcomes to be generated.
+
